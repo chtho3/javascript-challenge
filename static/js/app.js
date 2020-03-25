@@ -13,14 +13,17 @@ tableData.forEach((ufoSighting) => {
 
 
 function clickFunc() {
+  var inputElement = d3.select("#filters");
+
   var filteredTable = tableData;
-    // define Selector inputs
-  var dateQuery = document.querySelector("datetime");
-  var stateQuery = document.getElementById("state");
-  var cityQuery = document.querySelector("city");
-  var countryQuery = document.querySelector("country");
-  var shapeQuery = document.querySelector("shape");
+// define Selector inputs
+  var dateQuery = inputElement.property("datetime");
+  var stateQuery = inputElement.property("state");
+  var cityQuery = inputElement.property("city");
+  var countryQuery = inputElement.property("country");
+  var shapeQuery = inputElement.property("shape");
   console.log(stateQuery);
+
 // dateQuery
   if (dateQuery != "") {
     filteredTable = tableData.filter(index => {
@@ -61,6 +64,7 @@ function clickFunc() {
     });
   }
   else{filteredTable};
+//var filteredData = people.filter(person => person.bloodType === inputValue);
 
     
   // populate the table for each UFO sighting
@@ -74,5 +78,22 @@ function clickFunc() {
   });
 };
 
+
+
+function handleSubmit() {
+  // Prevent the page from refreshing
+  d3.event.preventDefault();
+  clickFunc();
+  // Select the input value from the form
+  var newTable = d3.select("tbody").node().value;
+  // clear the input value
+  d3.select("tbody").node().value = "";
+  var row = newTable.append("tr");
+  Object.entries(filteredTable).forEach(([key, value]) => {
+    var cell = row.append("td");
+    cell.text(value);
+  });
+ };
+
  // event listener
- d3.select("filter-btn").on("click", clickFunc);
+ d3.select("filter-btn").on("click", handleSubmit);
