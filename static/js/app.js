@@ -1,99 +1,69 @@
 // from data.js
 var tableData = data;
+
+// get table references
 var tbody = d3.select("tbody");
 
-// populate the table for each UFO sighting
-tableData.forEach((ufoSighting) => {
+function buildTable(data) {
+  // First, clear out any existing data
+  tbody.html("");
+
+  // Next, loop through each object in the data
+  // and append a row and cells for each value in the row
+  data.forEach((dataRow) => {
+    // Append a row to the table body
     var row = tbody.append("tr");
-    Object.entries(ufoSighting).forEach(([key, value]) => {
+
+    // Loop through each field in the dataRow and add
+    // each value as a table cell (td)
+    Object.values(dataRow).forEach((val) => {
       var cell = row.append("td");
-      cell.text(value);
-    });
-});
-
-
-function clickFunc() {
-  var inputElement = d3.select("#filters");
-
-  var filteredTable = tableData;
-// define Selector inputs
-  var dateQuery = inputElement.property("datetime");
-  var stateQuery = inputElement.property("state");
-  var cityQuery = inputElement.property("city");
-  var countryQuery = inputElement.property("country");
-  var shapeQuery = inputElement.property("shape");
-  console.log(stateQuery);
-
-// dateQuery
-  if (dateQuery != "") {
-    filteredTable = tableData.filter(index => {
-      var filteredDate = index.datetime;
-      return filteredDate === dateQuery;
-    });
-  }
-  else{filteredTable};
-// stateQuery
-  if (stateQuery != "") {
-    filteredTable = tableData.filter(index => {
-      var filteredState = index.state;
-      return filteredState === stateQuery;
-    });
-  }
-  else{filteredTable};
-  // cityQuery
-  if (cityQuery != "") {
-    filteredTable = tableData.filter(index => {
-      var filteredCity = index.city;
-      return filteredCity === cityQuery;
-    });
-  }
-  else{filteredTable};
-  // countryQuery
-  if (countryQuery != "") {
-    filteredTable = tableData.filter(index => {
-      var filteredCountry = index.country;
-      return filteredCountry === countryQuery;
-    });
-  }
-  else{filteredTable};
-  // shapeQuery
-  if (shapeQuery != "") {
-    filteredTable = tableData.filter(index => {
-      var filteredShape = index.shape;
-      return filteredShape === shapeQuery;
-    });
-  }
-  else{filteredTable};
-//var filteredData = people.filter(person => person.bloodType === inputValue);
-
-    
-  // populate the table for each UFO sighting
-  filteredTable.forEach((ufoSighting) => {
-    tbody.innerHTML="";
-    var row = tbody.append("tr");
-    Object.entries(ufoSighting).forEach(([key, value]) => {
-      var cell = row.append("td");
-      cell.text(value);
+      cell.text(val);
     });
   });
-};
+}
 
+// Keep Track of all filters
+var filters = {};
 
+function updateFilters() {
 
-function handleSubmit() {
-  // Prevent the page from refreshing
-  d3.event.preventDefault();
-  clickFunc();
-  // Select the input value from the form
-  var newTable = d3.select("tbody").node().value;
-  // clear the input value
-  d3.select("tbody").node().value = "";
-  var row = newTable.append("tr");
-  Object.entries(filteredTable).forEach(([key, value]) => {
-    var cell = row.append("td");
-    cell.text(value);
+  // Save the element, value, and id of the filter that was changed
+  var changedElement = d3.select(this).select("input");
+  var elementValue = changedElement.property("value");
+  var filterId = changedElement.attr("id");
+
+  // If a filter value was entered then add that filterId and value
+  // to the filters list. Otherwise, clear that filter from the filters object
+  if (elementValue) {
+    filters[filterId] = elementValue;
+  }
+  else {
+    delete filters[filterId];
+  }
+
+  // Call function to apply all filters and rebuild the table
+  filterTable();
+
+}
+
+function filterTable() {
+
+  // Set the filteredData to the tableData
+  let filteredData = tableData;
+
+  // Loop through all of the filters and keep any data that
+  // matches the filter values
+  Object.entries(filters).forEach(([key, value]) => {
+    filteredData = filteredData.filter(row => row[key] === value);
   });
- };
 
- // event listener
- d3.select("filter-btn").on("click", handleSubmit);
+  // Finally, rebuild the table using the filtered Data
+  buildTable(filteredData);
+}
+
+// Attach an event to listen for changes to each filter
+d3.selectAll(".filter").on("change", updateFilters);
+
+// Build the table when the page loads
+buildTable(tableData);
